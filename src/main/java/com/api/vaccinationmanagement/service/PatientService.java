@@ -4,11 +4,10 @@ import com.api.vaccinationmanagement.model.PatientModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
 public interface PatientService extends BaseService<PatientModel>{
-    List<PatientModel> findByEmail(String email);
-
-    Page<PatientModel> findByRoleRegion(Pageable pageable);
+    Page<PatientModel> findByFilters(String fullname, String email, String phone, Timestamp birthdateFrom, Timestamp birthdateTo, String addressCode, Pageable pageable);
 }

@@ -4,11 +4,21 @@ import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.repository.PatientRepo;
 import com.api.vaccinationmanagement.service.PatientService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,11 +26,36 @@ import java.util.Optional;
 public class PatientServiceImp implements PatientService {
     @Autowired
     private PatientRepo patientRepo;
+    @Autowired
+    EntityManager entityManager;
 
     @Override
-    public Page<PatientModel> findByRoleRegion(Pageable pageable) {
-        String region = "0001%";
-        return patientRepo.findPatientModelsByAddressCodeLike(pageable, region);
+    public Page<PatientModel> findByFilters(String fullname, String email,
+                                            String phone, Timestamp birthdateFrom,
+                                            Timestamp birthdateTo, String addressCode,
+                                            Pageable pageable) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<PatientModel> filtersQuery = criteriaBuilder.createQuery(PatientModel.class);
+        // from patient
+        Root<PatientModel> patientModelRoot = filtersQuery.from(PatientModel.class);
+        // select * {patientModelRoot}
+        filtersQuery.select(patientModelRoot);
+        // Xay dung dieu kien
+        Predicate filtersPredicate = predicateBuild(criteriaBuilder, patientModelRoot, fullname, email, phone, birthdateFrom, birthdateTo, addressCode);
+        // select * {patientModelRoot} where {filtersPredicate} orderBy {...}
+        filtersQuery.where(filtersPredicate).orderBy(criteriaBuilder.asc(patientModelRoot.get("fullname")));
+        // Thuc hien count
+        TypedQuery<PatientModel> patientModelTypedCount = entityManager.createQuery(filtersQuery);
+        // Thuc hien query
+        TypedQuery<PatientModel> patientModelTypedQuery = entityManager.createQuery(filtersQuery);
+        // Thuc hien phan trang
+        patientModelTypedQuery.setFirstResult(pageable.getPageNumber() * pageable.getPageSize());
+        patientModelTypedQuery.setMaxResults(pageable.getPageSize());
+
+        List<PatientModel> listResults = patientModelTypedQuery.getResultList();
+        int totalResults = patientModelTypedCount.getResultList().size();
+
+        return new PageImpl<>(listResults, pageable, totalResults);
     }
 
     @Override
@@ -31,11 +66,6 @@ public class PatientServiceImp implements PatientService {
         else
             throw new NotFoundException("Not found patient with id: " + id);
 
-    }
-
-    @Override
-    public List<PatientModel> findByEmail(String email) {
-        return patientRepo.findPatientModelsByEmail(email);
     }
 
     @Override
@@ -61,5 +91,43 @@ public class PatientServiceImp implements PatientService {
             patientRepo.deleteById(id);
         else
             throw new NotFoundException("Not found patient with id: " + id);
+    }
+
+    private Predicate predicateBuild(CriteriaBuilder criteriaBuilder, Root<PatientModel> patientModelRoot,
+                                     String fullname, String email,
+                                     String phone, Timestamp birthdateFrom,
+                                     Timestamp birthdateTo, String addressCode) {
+        List<Predicate> predicateList = new ArrayList<>();
+        // Lọc theo name
+        if (fullname != null && !fullname.isBlank()) {
+            Predicate predicate = criteriaBuilder.like(patientModelRoot.get("fullname"), "%" + fullname + "%");
+            predicateList.add(predicate);
+        }
+        // Lọc theo email
+        if (email != null && !email.isBlank()) {
+            Predicate predicate = criteriaBuilder.equal(patientModelRoot.get("email"), email);
+            predicateList.add(predicate);
+        }
+        // Lọc theo phone
+        if (phone != null && !phone.isBlank()) {
+            Predicate predicate = criteriaBuilder.equal(patientModelRoot.get("phone"), phone);
+            predicateList.add(predicate);
+        }
+        // Lọc theo addressCode
+        if (addressCode != null && !addressCode.isBlank()) {
+            Predicate predicate = criteriaBuilder.like(patientModelRoot.get("addressCode"), addressCode + "%");
+            predicateList.add(predicate);
+        }
+        // Lọc theo khoảng ngày
+        if ((birthdateFrom != null && birthdateTo != null) && (birthdateFrom.before(birthdateTo))) {
+            Predicate predicate = criteriaBuilder.between(patientModelRoot.get("birthdate"), birthdateFrom, birthdateTo);
+            predicateList.add(predicate);
+        }
+        // Lọc theo ngày chính xác (not work)
+        if((birthdateFrom != null && birthdateTo != null) && (birthdateFrom.equals(birthdateTo))){
+            Predicate predicate = criteriaBuilder.equal(patientModelRoot.get("birthdate"), birthdateFrom);
+            predicateList.add(predicate);
+        }
+        return criteriaBuilder.and(predicateList.toArray(new Predicate[0]));
     }
 }

@@ -1,5 +1,6 @@
 package com.api.vaccinationmanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,6 +27,7 @@ public class VaccineModel {
     @ManyToOne
     @JoinColumn(name = "sick_id")
     private SickModel sickModel;
+    @JsonIgnore
     @OneToMany(mappedBy = "vaccineModel",cascade = CascadeType.ALL)
     private List<VMModel> vmModelList = new ArrayList<>();
 }
