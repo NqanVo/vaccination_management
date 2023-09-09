@@ -1,9 +1,13 @@
 package com.api.vaccinationmanagement.controller;
 
 import com.api.vaccinationmanagement.exception.NotFoundException;
+import com.api.vaccinationmanagement.model.HistoryVaccinationModel;
 import com.api.vaccinationmanagement.model.PatientModel;
+import com.api.vaccinationmanagement.model.VMModel;
 import com.api.vaccinationmanagement.response.ResponseModel;
 import com.api.vaccinationmanagement.service.PatientService;
+import com.api.vaccinationmanagement.service.VMService;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,16 +27,22 @@ import java.util.Objects;
 public class PatientController {
     @Autowired
     private PatientService patientService;
+    @Autowired
+    private VMService vmService;
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<?> findByFilters(
+            @RequestParam(required = false) String fullname,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String addressCode,
+            @RequestParam(required = false) @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC") Timestamp birthdateFrom,
+            @RequestParam(required = false) @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC") Timestamp birthdateTo,
             @RequestParam(required = false) Integer sizePage,
-            @RequestParam(required = false) Integer currentPage,
-            @RequestParam(required = false) String sort) throws RuntimeException {
+            @RequestParam(required = false) Integer currentPage) throws RuntimeException {
 
         int actualSizePage = (sizePage != null && sizePage > 0) ? sizePage : 10;
         int actualCurrentPage = (currentPage != null && currentPage > 0) ? currentPage : 1;
-//        Sort.Direction actualSort = Objects.equals(sort, "DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
 
         Pageable pageable = PageRequest.of(actualCurrentPage - 1, actualSizePage);
 
@@ -40,7 +50,18 @@ public class PatientController {
                 Timestamp.valueOf(LocalDateTime.now()),
                 200,
                 "",
-                patientService.findByRoleRegion(pageable));
+                patientService.findByFilters(fullname, email, phone, birthdateFrom, birthdateTo, "0001", pageable));
+        return ResponseEntity.ok(responseModel);
+    }
+
+    @GetMapping("/{id}/history-vaccination")
+    public ResponseEntity<?> findHistoryVaccination(@PathVariable Integer id) throws RuntimeException {
+
+        ResponseModel<List<HistoryVaccinationModel>> responseModel = new ResponseModel<>(
+                Timestamp.valueOf(LocalDateTime.now()),
+                200,
+                "",
+                vmService.findHistoryVaccinationByPatient(id));
         return ResponseEntity.ok(responseModel);
     }
 
@@ -60,25 +81,6 @@ public class PatientController {
                     ex.getMessage(),
                     null);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseModel);
-        } catch (RuntimeException ex) {
-            ResponseModel<PatientModel> responseModel = new ResponseModel<>(
-                    Timestamp.valueOf(LocalDateTime.now()),
-                    500,
-                    ex.getMessage(),
-                    null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
-        }
-    }
-
-    @GetMapping("/email/{email}")
-    public ResponseEntity<ResponseModel<?>> findByEmail(@PathVariable String email) throws RuntimeException {
-        try {
-            ResponseModel<List<PatientModel>> responseModel = new ResponseModel<>(
-                    Timestamp.valueOf(LocalDateTime.now()),
-                    200,
-                    null,
-                    patientService.findByEmail(email));
-            return ResponseEntity.ok(responseModel);
         } catch (RuntimeException ex) {
             ResponseModel<PatientModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
