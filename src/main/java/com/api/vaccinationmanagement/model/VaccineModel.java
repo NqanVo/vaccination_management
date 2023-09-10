@@ -14,13 +14,12 @@ import java.util.List;
 @AllArgsConstructor
 @Entity(name = "vaccine")
 @Table(name = "vaccine")
-public class VaccineModel {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class VaccineModel extends BaseModel {
+    @Column(length = 50)
     private String name;
     @Column(columnDefinition = "LONGTEXT")
     private String description;
+    @Column(length = 20)
     private String madeIn;
     private Integer minAge;
     private Integer maxAge;

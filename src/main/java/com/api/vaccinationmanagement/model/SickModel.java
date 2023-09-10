@@ -14,10 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 @Entity(name = "sick")
 @Table(name = "sick")
-public class SickModel {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class SickModel extends BaseModel{
+    @Column(length = 50)
     private String name;
     @Column(columnDefinition = "LONGTEXT")
     private String description;

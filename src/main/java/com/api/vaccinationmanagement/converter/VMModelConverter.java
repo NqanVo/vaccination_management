@@ -1,11 +1,11 @@
-package com.api.vaccinationmanagement.conveter;
+package com.api.vaccinationmanagement.converter;
 
-import com.api.vaccinationmanagement.model.HistoryVaccinationModel;
+import com.api.vaccinationmanagement.dto.HistoryVaccinationDto;
 import com.api.vaccinationmanagement.model.VMModel;
 
 public class VMModelConverter {
-    public static HistoryVaccinationModel VMToHistoryModel(VMModel vmModel){
-        return HistoryVaccinationModel
+    public static HistoryVaccinationDto VMToHistoryModel(VMModel vmModel){
+        return HistoryVaccinationDto
                 .builder()
                 .id(vmModel.getId())
                 .namePatient(vmModel.getPatientModel().getFullname())

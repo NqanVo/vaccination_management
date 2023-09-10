@@ -1,5 +1,7 @@
 package com.api.vaccinationmanagement.service.imp;
 
+import com.api.vaccinationmanagement.converter.VaccineConverter;
+import com.api.vaccinationmanagement.dto.InputVaccineDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.SickModel;
 import com.api.vaccinationmanagement.model.VaccineModel;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -63,19 +66,30 @@ public class VaccineServiceImp implements VaccineService {
     }
 
     @Override
-    public VaccineModel saveNew(VaccineModel model) {
-        return vaccineRepo.save(model);
+    public VaccineModel saveNew(InputVaccineDto dto) {
+        Optional<SickModel> sickModel = sickRepo.findById(dto.getSickId());
+        if (sickModel.isPresent()) {
+            VaccineModel vaccineModel = VaccineConverter.InputToModelCreate(dto);
+            vaccineModel.setSickModel(sickModel.get());
+            return vaccineRepo.save(vaccineModel);
+        } else
+            throw new NotFoundException("Not found sick with id: " + dto.getSickId());
     }
 
     @Override
-    public VaccineModel saveUpdate(VaccineModel model) {
-        Optional<VaccineModel> vaccineModel = vaccineRepo.findById(model.getId());
-        if (vaccineModel.isPresent())
-            return vaccineRepo.save(model);
-        else
-            throw new NotFoundException("Not found vaccine with id: " + model.getId());
-    }
+    public VaccineModel saveUpdate(InputVaccineDto dto) {
+        VaccineModel vaccineModel = vaccineRepo.findById(dto.getId())
+                .orElseThrow(() -> new NotFoundException("Not found vaccine with id: " + dto.getId()));
 
+        if (!Objects.equals(dto.getSickId(), vaccineModel.getSickModel().getId())) {
+            SickModel sick = sickRepo.findById(dto.getSickId())
+                    .orElseThrow(() -> new NotFoundException("Not found sick with id: " + dto.getSickId()));
+            vaccineModel.setSickModel(sick);
+        }
+
+        VaccineConverter.InputToModelUpdate(dto, vaccineModel);
+        return vaccineRepo.save(vaccineModel);
+    }
     @Override
     public void deleteById(Integer id) {
         Optional<VaccineModel> vaccineModel = vaccineRepo.findById(id);

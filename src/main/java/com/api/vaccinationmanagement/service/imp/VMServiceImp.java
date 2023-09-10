@@ -1,6 +1,8 @@
 package com.api.vaccinationmanagement.service.imp;
 
-import com.api.vaccinationmanagement.conveter.VMModelConverter;
+import com.api.vaccinationmanagement.converter.VMModelConverter;
+import com.api.vaccinationmanagement.dto.HistoryVaccinationDto;
+import com.api.vaccinationmanagement.dto.InputVMDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.*;
 import com.api.vaccinationmanagement.repository.PatientRepo;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -72,20 +75,10 @@ public class VMServiceImp implements VMService {
     }
 
     @Override
-    public VMModel saveNew(VMModel model) {
-        return null;
-    }
-
-    @Override
-    public VMModel saveUpdate(VMModel model) {
-        return null;
-    }
-
-    @Override
-    public List<HistoryVaccinationModel> findHistoryVaccinationByPatient(Integer id) {
+    public List<HistoryVaccinationDto> findHistoryVaccinationByPatient(Integer id) {
         Optional<PatientModel> patientModel = patientRepo.findById(id);
         if (patientModel.isPresent()) {
-            List<HistoryVaccinationModel> list = new ArrayList<>();
+            List<HistoryVaccinationDto> list = new ArrayList<>();
             List<VMModel> vmModelList = patientModel.get().getVmModelList();
             vmModelList.forEach(vm -> {
                 list.add(VMModelConverter.VMToHistoryModel(vm));
@@ -96,39 +89,44 @@ public class VMServiceImp implements VMService {
     }
 
     @Override
-    public VMModel saveNew(InputVMModel model) {
-        Optional<PatientModel> patientModel = patientRepo.findById(model.getPatientId());
-        Optional<SickModel> sickModel = sickRepo.findById(model.getSickId());
-        Optional<VaccineModel> vaccineModel = vaccineRepo.findById(model.getVaccineId());
-        if (patientModel.isPresent() && sickModel.isPresent() && vaccineModel.isPresent()) {
-            VMModel vmModel = VMModel.builder()
-                    .patientModel(patientModel.get())
-                    .sickModel(sickModel.get())
-                    .vaccineModel(vaccineModel.get())
-                    .vaccinationDate(model.getVaccinationDate())
-                    .build();
-            return vmRepo.save(vmModel);
-        } else
-            throw new NotFoundException("The information entered is not appropriate, recheck!");
+    public VMModel saveNew(InputVMDto dto) {
+        PatientModel patientModel = patientRepo.findById(dto.getPatientId())
+                .orElseThrow(() -> new NotFoundException("Not found patient with id: " + dto.getPatientId()));
+        SickModel sickModel = sickRepo.findById(dto.getSickId())
+                .orElseThrow(() -> new NotFoundException("Not found sick with id: " + dto.getSickId()));
+        VaccineModel vaccineModel = vaccineRepo.findById(dto.getVaccineId())
+                .orElseThrow(() -> new NotFoundException("Not found vaccine with id: " + dto.getVaccineId()));
+
+        VMModel vmModel = VMModel.builder()
+                .patientModel(patientModel)
+                .sickModel(sickModel)
+                .vaccineModel(vaccineModel)
+                .vaccinationDate(dto.getVaccinationDate())
+                .build();
+        return vmRepo.save(vmModel);
     }
 
     @Override
-    public VMModel saveUpdate(InputVMModel model) {
-        Optional<VMModel> vmModel = vmRepo.findById(model.getVmId());
-        Optional<PatientModel> patientModel = patientRepo.findById(model.getPatientId());
-        Optional<SickModel> sickModel = sickRepo.findById(model.getSickId());
-        Optional<VaccineModel> vaccineModel = vaccineRepo.findById(model.getVaccineId());
-        if (vmModel.isPresent() && patientModel.isPresent() && sickModel.isPresent() && vaccineModel.isPresent()) {
-            VMModel vm = VMModel.builder()
-                    .id(vmModel.get().getId())
-                    .patientModel(patientModel.get())
-                    .sickModel(sickModel.get())
-                    .vaccineModel(vaccineModel.get())
-                    .vaccinationDate(model.getVaccinationDate())
-                    .build();
-            return vmRepo.save(vm);
-        } else
-            throw new NotFoundException("The information entered is not appropriate, recheck!");
+    public VMModel saveUpdate(InputVMDto dto) {
+        VMModel vmModelOld = vmRepo.findById(dto.getVmId())
+                .orElseThrow(() -> new NotFoundException("Not found vaccination management with id: " + dto.getVmId()));
+        if (!Objects.equals(dto.getPatientId(), vmModelOld.getPatientModel().getId())) {
+            PatientModel patientModel = patientRepo.findById(dto.getPatientId())
+                    .orElseThrow(() -> new NotFoundException("Not found patient with id: " + dto.getPatientId()));
+            vmModelOld.setPatientModel(patientModel);
+        }
+        if (!Objects.equals(dto.getSickId(), vmModelOld.getSickModel().getId())) {
+            SickModel sickModel = sickRepo.findById(dto.getSickId())
+                    .orElseThrow(() -> new NotFoundException("Not found sick with id: " + dto.getSickId()));
+            vmModelOld.setSickModel(sickModel);
+        }
+        if (!Objects.equals(dto.getVaccineId(), vmModelOld.getVaccineModel().getId())) {
+            VaccineModel vaccineModel = vaccineRepo.findById(dto.getVaccineId())
+                    .orElseThrow(() -> new NotFoundException("Not found vaccine with id: " + dto.getVaccineId()));
+            vmModelOld.setVaccineModel(vaccineModel);
+        }
+        vmModelOld.setVaccinationDate(dto.getVaccinationDate());
+        return vmRepo.save(vmModelOld);
     }
 
     @Override

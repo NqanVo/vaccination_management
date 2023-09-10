@@ -1,5 +1,6 @@
 package com.api.vaccinationmanagement.controller;
 
+import com.api.vaccinationmanagement.dto.InputSickDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.model.SickModel;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -22,6 +24,7 @@ public class SickController {
     @Autowired
     private SickService sickService;
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     @GetMapping
     public ResponseEntity<?> findByFilters(
             @RequestParam(required = false) String name,
@@ -49,6 +52,7 @@ public class SickController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Integer id) throws RuntimeException {
         try {
@@ -75,8 +79,9 @@ public class SickController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping
-    public ResponseEntity<?> createSick(@RequestBody SickModel sickModel) {
+    public ResponseEntity<?> createSick(@RequestBody InputSickDto sickModel) {
         try {
             ResponseModel<SickModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
@@ -94,8 +99,9 @@ public class SickController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PutMapping
-    public ResponseEntity<?> updateSick(@RequestBody SickModel sickModel) {
+    public ResponseEntity<?> updateSick(@RequestBody InputSickDto sickModel) {
         try {
             ResponseModel<SickModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
@@ -120,6 +126,7 @@ public class SickController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteById(@PathVariable Integer id) {
         try {
