@@ -1,5 +1,7 @@
 package com.api.vaccinationmanagement.service.imp;
 
+import com.api.vaccinationmanagement.converter.SickConverter;
+import com.api.vaccinationmanagement.dto.InputSickDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.model.SickModel;
@@ -60,17 +62,17 @@ public class SickServiceImp implements SickService {
     }
 
     @Override
-    public SickModel saveNew(SickModel model) {
-        return sickRepo.save(model);
+    public SickModel saveNew(InputSickDto dto) {
+        return sickRepo.save(SickConverter.InputToModelCreate(dto));
     }
 
     @Override
-    public SickModel saveUpdate(SickModel model) {
-        Optional<SickModel> sickModel = sickRepo.findById(model.getId());
+    public SickModel saveUpdate(InputSickDto dto) {
+        Optional<SickModel> sickModel = sickRepo.findById(dto.getId());
         if (sickModel.isPresent())
-            return sickRepo.save(model);
+            return sickRepo.save(SickConverter.InputToModelUpdate(dto, sickModel.get()));
         else
-            throw new NotFoundException("Not found sick with id: " + model.getId());
+            throw new NotFoundException("Not found sick with id: " + dto.getId());
 
     }
 

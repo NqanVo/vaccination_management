@@ -14,10 +14,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @Entity(name = "vaccination_management")
 @Table(name = "vaccination_management")
-public class VMModel {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class VMModel extends BaseModel{
     @ManyToOne
     @JoinColumn(name = "patient_id")
     private PatientModel patientModel;

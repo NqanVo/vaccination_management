@@ -14,5 +14,7 @@ import java.util.Optional;
 public interface PatientRepo extends JpaRepository<PatientModel, Integer> {
     List<PatientModel> findPatientModelsByEmail(String email);
 
+    Optional<PatientModel> findPatientModelByIdAndAddressCodeLike(Integer id, String addressCode);
+
     Page<PatientModel> findPatientModelsByAddressCodeLike(Pageable pageable, String region);
 }

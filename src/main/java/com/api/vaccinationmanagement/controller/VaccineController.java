@@ -1,5 +1,6 @@
 package com.api.vaccinationmanagement.controller;
 
+import com.api.vaccinationmanagement.dto.InputVaccineDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.model.SickModel;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -61,7 +63,7 @@ public class VaccineController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         }
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Integer id) throws RuntimeException {
         try {
@@ -87,9 +89,9 @@ public class VaccineController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         }
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping
-    public ResponseEntity<?> createVaccine(@RequestBody VaccineModel vaccineModel) throws RuntimeException {
+    public ResponseEntity<?> createVaccine(@RequestBody InputVaccineDto vaccineModel) throws RuntimeException {
         try {
             ResponseModel<VaccineModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
@@ -106,9 +108,9 @@ public class VaccineController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         }
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PutMapping
-    public ResponseEntity<?> updateVaccine(@RequestBody VaccineModel vaccineModel) throws RuntimeException {
+    public ResponseEntity<?> updateVaccine(@RequestBody InputVaccineDto vaccineModel) throws RuntimeException {
         try {
             ResponseModel<VaccineModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
@@ -132,7 +134,7 @@ public class VaccineController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         }
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteById(@PathVariable Integer id) throws RuntimeException {
         try {

@@ -1,4 +1,4 @@
-package com.api.vaccinationmanagement.model;
+package com.api.vaccinationmanagement.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.sql.Timestamp;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class HistoryVaccinationModel {
+public class HistoryVaccinationDto {
     private Integer id;
     private String namePatient;
     private String nameSick;

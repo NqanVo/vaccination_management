@@ -1,5 +1,8 @@
 package com.api.vaccinationmanagement.service.imp;
 
+import com.api.vaccinationmanagement.config.jwt.JwtService;
+import com.api.vaccinationmanagement.converter.PatientConverter;
+import com.api.vaccinationmanagement.dto.InputPatientDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.repository.PatientRepo;
@@ -10,6 +13,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -20,14 +24,18 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class PatientServiceImp implements PatientService {
     @Autowired
     private PatientRepo patientRepo;
     @Autowired
     EntityManager entityManager;
+    @Autowired
+    JwtService jwtService;
 
     @Override
     public Page<PatientModel> findByFilters(String fullname, String email,
@@ -60,28 +68,28 @@ public class PatientServiceImp implements PatientService {
 
     @Override
     public Optional<PatientModel> findById(Integer id) {
-        Optional<PatientModel> patient = patientRepo.findById(id);
+        String addressCode = Objects.equals(jwtService.getRoleRegion(), "0000") ? "%" : jwtService.getRoleRegion();
+        Optional<PatientModel> patient = patientRepo.findPatientModelByIdAndAddressCodeLike(id, addressCode);
         if (patient.isPresent())
             return patient;
         else
-            throw new NotFoundException("Not found patient with id: " + id);
-
+            throw new NotFoundException("Not found patient with id: " + id + " or patient outside the area you manage");
     }
 
     @Override
-    public PatientModel saveNew(PatientModel model) {
-        return patientRepo.save(model);
+    public PatientModel saveNew(InputPatientDto dto) {
+        return patientRepo.save(PatientConverter.InputToModelCreate(dto));
     }
 
     @Override
-    public PatientModel saveUpdate(PatientModel model) {
-        Optional<PatientModel> patient = patientRepo.findById(model.getId());
+    public PatientModel saveUpdate(InputPatientDto dto) {
+        Optional<PatientModel> patient = patientRepo.findById(dto.getId());
         if (patient.isPresent())
             // Lấy email và role từ jwt để kiểm tra.
             // Nếu có quyền sẽ update, không thì lỗi 403
-            return null;
+            return patientRepo.save(PatientConverter.InputToModelUpdate(dto, patient.get()));
         else
-            throw new NotFoundException("Not found patient with id: " + model.getId());
+            throw new NotFoundException("Not found patient with id: " + dto.getId());
     }
 
     @Override
@@ -124,7 +132,7 @@ public class PatientServiceImp implements PatientService {
             predicateList.add(predicate);
         }
         // Lọc theo ngày chính xác (not work)
-        if((birthdateFrom != null && birthdateTo != null) && (birthdateFrom.equals(birthdateTo))){
+        if ((birthdateFrom != null && birthdateTo != null) && (birthdateFrom.equals(birthdateTo))) {
             Predicate predicate = criteriaBuilder.equal(patientModelRoot.get("birthdate"), birthdateFrom);
             predicateList.add(predicate);
         }
