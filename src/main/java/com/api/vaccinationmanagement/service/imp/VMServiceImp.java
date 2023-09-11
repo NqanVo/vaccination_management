@@ -9,6 +9,7 @@ import com.api.vaccinationmanagement.repository.PatientRepo;
 import com.api.vaccinationmanagement.repository.SickRepo;
 import com.api.vaccinationmanagement.repository.VMRepo;
 import com.api.vaccinationmanagement.repository.VaccineRepo;
+import com.api.vaccinationmanagement.service.RoleService;
 import com.api.vaccinationmanagement.service.VMService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -39,17 +40,21 @@ public class VMServiceImp implements VMService {
     @Autowired
     private VaccineRepo vaccineRepo;
     @Autowired
-    EntityManager entityManager;
+    private EntityManager entityManager;
+    @Autowired
+    private RoleService roleService;
 
     @Override
     public Page<VMModel> findByFilters(Integer patientId, Integer sickId,
                                        Integer vaccineId, Timestamp vaccinationFrom,
                                        Timestamp vaccinationTo, String addressCode, Pageable pageable) {
+        String actualAddressCode = roleService.getRoleRegionForGet(addressCode);
+
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<VMModel> filtersQuery = criteriaBuilder.createQuery(VMModel.class);
         Root<VMModel> vmModelRoot = filtersQuery.from(VMModel.class);
         filtersQuery.select(vmModelRoot);
-        Predicate filtersPredicate = predicateBuild(criteriaBuilder, vmModelRoot, patientId, sickId, vaccineId, vaccinationFrom, vaccinationTo, addressCode);
+        Predicate filtersPredicate = predicateBuild(criteriaBuilder, vmModelRoot, patientId, sickId, vaccineId, vaccinationFrom, vaccinationTo, actualAddressCode);
         filtersQuery.where(filtersPredicate).orderBy(criteriaBuilder.asc(vmModelRoot.get("id")));
         // Thuc hien count
         TypedQuery<VMModel> vmModelTypedCount = entityManager.createQuery(filtersQuery);
@@ -68,15 +73,17 @@ public class VMServiceImp implements VMService {
     @Override
     public Optional<VMModel> findById(Integer id) {
         Optional<VMModel> vmModel = vmRepo.findById(id);
-        if (vmModel.isPresent())
+        if (vmModel.isPresent()) {
+            roleService.getRoleRegionForGet(vmModel.get().getPatientModel().getAddressCode());
             return vmModel;
-        else
+        } else
             throw new NotFoundException("Not found history vaccination with id: " + id);
     }
 
     @Override
     public List<HistoryVaccinationDto> findHistoryVaccinationByPatient(Integer id) {
-        Optional<PatientModel> patientModel = patientRepo.findById(id);
+        String addressCode = roleService.getRoleRegionFromJwt();
+        Optional<PatientModel> patientModel = patientRepo.findPatientModelByIdAndAddressCodeLike(id, addressCode);
         if (patientModel.isPresent()) {
             List<HistoryVaccinationDto> list = new ArrayList<>();
             List<VMModel> vmModelList = patientModel.get().getVmModelList();
@@ -85,13 +92,14 @@ public class VMServiceImp implements VMService {
             });
             return list;
         } else
-            throw new NotFoundException("Not found patient with id: " + id);
+            throw new NotFoundException("Not found patient with id: " + id + " or patient outside the area you manage");
     }
 
     @Override
     public VMModel saveNew(InputVMDto dto) {
         PatientModel patientModel = patientRepo.findById(dto.getPatientId())
                 .orElseThrow(() -> new NotFoundException("Not found patient with id: " + dto.getPatientId()));
+        roleService.getRoleRegionForSet(patientModel.getAddressCode());
         SickModel sickModel = sickRepo.findById(dto.getSickId())
                 .orElseThrow(() -> new NotFoundException("Not found sick with id: " + dto.getSickId()));
         VaccineModel vaccineModel = vaccineRepo.findById(dto.getVaccineId())
@@ -110,9 +118,11 @@ public class VMServiceImp implements VMService {
     public VMModel saveUpdate(InputVMDto dto) {
         VMModel vmModelOld = vmRepo.findById(dto.getVmId())
                 .orElseThrow(() -> new NotFoundException("Not found vaccination management with id: " + dto.getVmId()));
+        roleService.getRoleRegionForSet(vmModelOld.getPatientModel().getAddressCode());
         if (!Objects.equals(dto.getPatientId(), vmModelOld.getPatientModel().getId())) {
             PatientModel patientModel = patientRepo.findById(dto.getPatientId())
                     .orElseThrow(() -> new NotFoundException("Not found patient with id: " + dto.getPatientId()));
+            roleService.getRoleRegionForSet(patientModel.getAddressCode());
             vmModelOld.setPatientModel(patientModel);
         }
         if (!Objects.equals(dto.getSickId(), vmModelOld.getSickModel().getId())) {

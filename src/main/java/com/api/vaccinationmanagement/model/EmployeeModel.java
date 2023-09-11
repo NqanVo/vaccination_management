@@ -22,7 +22,7 @@ import java.util.List;
 public class EmployeeModel extends BaseModel implements UserDetails {
     @Column(length = 50)
     private String fullname;
-    @Column(length = 50)
+    @Column(length = 50, unique = true)
     private String email;
     @Column(length = 255)
     private String password;

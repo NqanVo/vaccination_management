@@ -3,6 +3,7 @@ package com.api.vaccinationmanagement.controller;
 import com.api.vaccinationmanagement.dto.InputPatientDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.dto.HistoryVaccinationDto;
+import com.api.vaccinationmanagement.exception.UnAuthorizationException;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.response.ResponseModel;
 import com.api.vaccinationmanagement.service.PatientService;
@@ -41,29 +42,60 @@ public class PatientController {
             @RequestParam(required = false) Integer sizePage,
             @RequestParam(required = false) Integer currentPage) throws RuntimeException {
 
-        int actualSizePage = (sizePage != null && sizePage > 0) ? sizePage : 10;
-        int actualCurrentPage = (currentPage != null && currentPage > 0) ? currentPage : 1;
+        try {
+            int actualSizePage = (sizePage != null && sizePage > 0) ? sizePage : 10;
+            int actualCurrentPage = (currentPage != null && currentPage > 0) ? currentPage : 1;
 
-        Pageable pageable = PageRequest.of(actualCurrentPage - 1, actualSizePage);
+            Pageable pageable = PageRequest.of(actualCurrentPage - 1, actualSizePage);
 
-        ResponseModel<Page<PatientModel>> responseModel = new ResponseModel<>(
-                Timestamp.valueOf(LocalDateTime.now()),
-                200,
-                "",
-                patientService.findByFilters(fullname, email, phone, birthdateFrom, birthdateTo, "0001", pageable));
-        return ResponseEntity.ok(responseModel);
+            ResponseModel<Page<PatientModel>> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    200,
+                    "",
+                    patientService.findByFilters(fullname, email, phone, birthdateFrom, birthdateTo, addressCode, pageable));
+            return ResponseEntity.ok(responseModel);
+        } catch (UnAuthorizationException ex) {
+            ResponseModel<PatientModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    401,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseModel);
+        } catch (RuntimeException ex) {
+            ResponseModel<PatientModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    500,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
+        }
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     @GetMapping("/{id}/history-vaccination")
     public ResponseEntity<?> findHistoryVaccination(@PathVariable Integer id) throws RuntimeException {
-
-        ResponseModel<List<HistoryVaccinationDto>> responseModel = new ResponseModel<>(
-                Timestamp.valueOf(LocalDateTime.now()),
-                200,
-                "",
-                vmService.findHistoryVaccinationByPatient(id));
-        return ResponseEntity.ok(responseModel);
+        try {
+            ResponseModel<List<HistoryVaccinationDto>> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    200,
+                    "",
+                    vmService.findHistoryVaccinationByPatient(id));
+            return ResponseEntity.ok(responseModel);
+        } catch (NotFoundException ex) {
+            ResponseModel<PatientModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    404,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseModel);
+        } catch (RuntimeException ex) {
+            ResponseModel<PatientModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    500,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
+        }
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
@@ -103,6 +135,13 @@ public class PatientController {
                     null,
                     patientService.saveNew(patientModel));
             return ResponseEntity.ok(responseModel);
+        } catch (UnAuthorizationException ex) {
+            ResponseModel<PatientModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    401,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseModel);
         } catch (RuntimeException ex) {
             ResponseModel<PatientModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
@@ -111,7 +150,6 @@ public class PatientController {
                     null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         }
-
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
@@ -124,6 +162,13 @@ public class PatientController {
                     null,
                     patientService.saveUpdate(patientModel));
             return ResponseEntity.ok(responseModel);
+        } catch (UnAuthorizationException ex) {
+            ResponseModel<PatientModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    401,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseModel);
         } catch (RuntimeException ex) {
             ResponseModel<PatientModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
@@ -134,7 +179,7 @@ public class PatientController {
         }
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteById(@PathVariable Integer id) throws RuntimeException {
         try {

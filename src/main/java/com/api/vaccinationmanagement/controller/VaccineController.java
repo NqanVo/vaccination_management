@@ -26,6 +26,7 @@ public class VaccineController {
     @Autowired
     private VaccineService vaccineService;
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     @GetMapping
     public ResponseEntity<?> findByFilters(
             @RequestParam(required = false) String name,
@@ -63,6 +64,7 @@ public class VaccineController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         }
     }
+
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Integer id) throws RuntimeException {
@@ -89,6 +91,7 @@ public class VaccineController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         }
     }
+
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping
     public ResponseEntity<?> createVaccine(@RequestBody InputVaccineDto vaccineModel) throws RuntimeException {
@@ -108,6 +111,7 @@ public class VaccineController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         }
     }
+
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PutMapping
     public ResponseEntity<?> updateVaccine(@RequestBody InputVaccineDto vaccineModel) throws RuntimeException {
@@ -134,6 +138,7 @@ public class VaccineController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         }
     }
+
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteById(@PathVariable Integer id) throws RuntimeException {

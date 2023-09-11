@@ -1,6 +1,7 @@
 package com.api.vaccinationmanagement.controller;
 
 import com.api.vaccinationmanagement.dto.InputSickDto;
+import com.api.vaccinationmanagement.dto.OutputSickDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.model.SickModel;
@@ -36,7 +37,7 @@ public class SickController {
 
             Pageable pageable = PageRequest.of(actualCurrentPage - 1, actualSizePage);
 
-            ResponseModel<Page<SickModel>> responseModel = new ResponseModel<>(
+            ResponseModel<Page<OutputSickDto>> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
                     200,
                     null,
@@ -56,7 +57,7 @@ public class SickController {
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Integer id) throws RuntimeException {
         try {
-            ResponseModel<SickModel> responseModel = new ResponseModel<>(
+            ResponseModel<OutputSickDto> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
                     200,
                     null,
@@ -83,7 +84,7 @@ public class SickController {
     @PostMapping
     public ResponseEntity<?> createSick(@RequestBody InputSickDto sickModel) {
         try {
-            ResponseModel<SickModel> responseModel = new ResponseModel<>(
+            ResponseModel<OutputSickDto> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
                     200,
                     null,
@@ -103,7 +104,7 @@ public class SickController {
     @PutMapping
     public ResponseEntity<?> updateSick(@RequestBody InputSickDto sickModel) {
         try {
-            ResponseModel<SickModel> responseModel = new ResponseModel<>(
+            ResponseModel<OutputSickDto> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
                     200,
                     null,

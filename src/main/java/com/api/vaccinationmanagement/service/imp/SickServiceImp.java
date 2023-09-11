@@ -2,6 +2,7 @@ package com.api.vaccinationmanagement.service.imp;
 
 import com.api.vaccinationmanagement.converter.SickConverter;
 import com.api.vaccinationmanagement.dto.InputSickDto;
+import com.api.vaccinationmanagement.dto.OutputSickDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.model.SickModel;
@@ -31,7 +32,7 @@ public class SickServiceImp implements SickService {
     @Autowired
     private EntityManager entityManager;
     @Override
-    public Page<SickModel> findByFilters(String name, Pageable pageable) {
+    public Page<OutputSickDto> findByFilters(String name, Pageable pageable) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<SickModel> filtersQuery = criteriaBuilder.createQuery(SickModel.class);
         Root<SickModel> sickModelRoot = filtersQuery.from(SickModel.class);
@@ -47,30 +48,33 @@ public class SickServiceImp implements SickService {
         sickModelTypedQuery.setMaxResults(pageable.getPageSize());
 
         List<SickModel> listResults = sickModelTypedQuery.getResultList();
+        List<OutputSickDto> outputSickDtos = new ArrayList<>();
+        listResults.forEach(sickModel -> outputSickDtos.add(SickConverter.ModelToOutput(sickModel)));
+
         int totalResults = sickModelTypedCount.getResultList().size();
 
-        return new PageImpl<>(listResults, pageable, totalResults);
+        return new PageImpl<>(outputSickDtos, pageable, totalResults);
     }
 
     @Override
-    public Optional<SickModel> findById(Integer id) {
+    public Optional<OutputSickDto> findById(Integer id) {
         Optional<SickModel> sickModel = sickRepo.findById(id);
         if (sickModel.isPresent())
-            return sickModel;
+            return Optional.of(SickConverter.ModelToOutput(sickModel.get()));
         else
             throw new NotFoundException("Not found sick with id: " + id);
     }
 
     @Override
-    public SickModel saveNew(InputSickDto dto) {
-        return sickRepo.save(SickConverter.InputToModelCreate(dto));
+    public OutputSickDto saveNew(InputSickDto dto) {
+        return SickConverter.ModelToOutput(sickRepo.save(SickConverter.InputToModelCreate(dto)));
     }
 
     @Override
-    public SickModel saveUpdate(InputSickDto dto) {
+    public OutputSickDto saveUpdate(InputSickDto dto) {
         Optional<SickModel> sickModel = sickRepo.findById(dto.getId());
         if (sickModel.isPresent())
-            return sickRepo.save(SickConverter.InputToModelUpdate(dto, sickModel.get()));
+            return SickConverter.ModelToOutput(sickRepo.save(SickConverter.InputToModelUpdate(dto, sickModel.get())));
         else
             throw new NotFoundException("Not found sick with id: " + dto.getId());
 
