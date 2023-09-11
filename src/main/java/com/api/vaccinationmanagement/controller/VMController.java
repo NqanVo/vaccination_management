@@ -2,6 +2,7 @@ package com.api.vaccinationmanagement.controller;
 
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.dto.InputVMDto;
+import com.api.vaccinationmanagement.exception.UnAuthorizationException;
 import com.api.vaccinationmanagement.model.VMModel;
 import com.api.vaccinationmanagement.response.ResponseModel;
 import com.api.vaccinationmanagement.service.VMService;
@@ -48,6 +49,13 @@ public class VMController {
                     null,
                     vmService.findByFilters(patientId, sickId, vaccineId, vaccinationFrom, vaccinationTo, addressCode, pageable));
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
+        } catch (UnAuthorizationException ex) {
+            ResponseModel<VMModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    401,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         } catch (RuntimeException ex) {
             ResponseModel<VMModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
@@ -72,6 +80,13 @@ public class VMController {
             ResponseModel<VMModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
                     404,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
+        } catch (UnAuthorizationException ex) {
+            ResponseModel<VMModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    401,
                     ex.getMessage(),
                     null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
@@ -102,6 +117,13 @@ public class VMController {
                     ex.getMessage(),
                     null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
+        } catch (UnAuthorizationException ex) {
+            ResponseModel<VMModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    401,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
         } catch (RuntimeException ex) {
             ResponseModel<VMModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
@@ -126,6 +148,13 @@ public class VMController {
             ResponseModel<VMModel> responseModel = new ResponseModel<>(
                     Timestamp.valueOf(LocalDateTime.now()),
                     404,
+                    ex.getMessage(),
+                    null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);
+        } catch (UnAuthorizationException ex) {
+            ResponseModel<VMModel> responseModel = new ResponseModel<>(
+                    Timestamp.valueOf(LocalDateTime.now()),
+                    401,
                     ex.getMessage(),
                     null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseModel);

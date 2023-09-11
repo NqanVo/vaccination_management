@@ -4,9 +4,11 @@ import com.api.vaccinationmanagement.config.jwt.JwtService;
 import com.api.vaccinationmanagement.converter.PatientConverter;
 import com.api.vaccinationmanagement.dto.InputPatientDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
+import com.api.vaccinationmanagement.exception.UnAuthorizationException;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.repository.PatientRepo;
 import com.api.vaccinationmanagement.service.PatientService;
+import com.api.vaccinationmanagement.service.RoleService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -35,13 +37,15 @@ public class PatientServiceImp implements PatientService {
     @Autowired
     EntityManager entityManager;
     @Autowired
-    JwtService jwtService;
+    private RoleService roleService;
 
     @Override
     public Page<PatientModel> findByFilters(String fullname, String email,
                                             String phone, Timestamp birthdateFrom,
                                             Timestamp birthdateTo, String addressCode,
                                             Pageable pageable) {
+        String actualAddressCode = roleService.getRoleRegionForGet(addressCode);
+
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<PatientModel> filtersQuery = criteriaBuilder.createQuery(PatientModel.class);
         // from patient
@@ -49,7 +53,7 @@ public class PatientServiceImp implements PatientService {
         // select * {patientModelRoot}
         filtersQuery.select(patientModelRoot);
         // Xay dung dieu kien
-        Predicate filtersPredicate = predicateBuild(criteriaBuilder, patientModelRoot, fullname, email, phone, birthdateFrom, birthdateTo, addressCode);
+        Predicate filtersPredicate = predicateBuild(criteriaBuilder, patientModelRoot, fullname, email, phone, birthdateFrom, birthdateTo, actualAddressCode);
         // select * {patientModelRoot} where {filtersPredicate} orderBy {...}
         filtersQuery.where(filtersPredicate).orderBy(criteriaBuilder.asc(patientModelRoot.get("fullname")));
         // Thuc hien count
@@ -68,7 +72,7 @@ public class PatientServiceImp implements PatientService {
 
     @Override
     public Optional<PatientModel> findById(Integer id) {
-        String addressCode = Objects.equals(jwtService.getRoleRegion(), "0000") ? "%" : jwtService.getRoleRegion();
+        String addressCode = roleService.getRoleRegionFromJwt();
         Optional<PatientModel> patient = patientRepo.findPatientModelByIdAndAddressCodeLike(id, addressCode);
         if (patient.isPresent())
             return patient;
@@ -78,18 +82,18 @@ public class PatientServiceImp implements PatientService {
 
     @Override
     public PatientModel saveNew(InputPatientDto dto) {
+        roleService.getRoleRegionForSet(dto.getAddressCode());
         return patientRepo.save(PatientConverter.InputToModelCreate(dto));
     }
 
     @Override
-    public PatientModel saveUpdate(InputPatientDto dto) {
-        Optional<PatientModel> patient = patientRepo.findById(dto.getId());
+    public PatientModel saveUpdate(InputPatientDto dto) throws UnAuthorizationException {
+        String addressCode = roleService.getRoleRegionForSet(dto.getAddressCode());
+        Optional<PatientModel> patient = patientRepo.findPatientModelByIdAndAddressCodeLike(dto.getId(), addressCode);
         if (patient.isPresent())
-            // Lấy email và role từ jwt để kiểm tra.
-            // Nếu có quyền sẽ update, không thì lỗi 403
             return patientRepo.save(PatientConverter.InputToModelUpdate(dto, patient.get()));
         else
-            throw new NotFoundException("Not found patient with id: " + dto.getId());
+            throw new NotFoundException("Not found patient with id: " + dto.getId() + " or patient outside the area you manage");
     }
 
     @Override
