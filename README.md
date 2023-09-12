@@ -5,10 +5,13 @@
 - CRUD Sick ✅
 - CRUD Vaccine ✅
 - CRUD Vaccination management ✅
+- CRUD Employee ✅
+- Validation input ✅
 - Login vs Signup ✅
 - Author vs Authen ✅
 
 # Salient features
+- Access token and refresh token ✅
 - Multi role and role with region ✅
 - Filters multi field for Patient/Sick/Vaccine/Vaccination management ✅
 - Find a list of children under 3 years old and send vaccination reminders via email
