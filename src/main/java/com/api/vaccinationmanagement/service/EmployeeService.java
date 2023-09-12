@@ -1,15 +1,23 @@
 package com.api.vaccinationmanagement.service;
 
-import com.api.vaccinationmanagement.dto.InputLoginDto;
-import com.api.vaccinationmanagement.dto.InputSignUpDto;
-import com.api.vaccinationmanagement.dto.OutputEmployeeDto;
-import com.api.vaccinationmanagement.dto.OutputLoginDto;
-import com.api.vaccinationmanagement.model.EmployeeModel;
+import com.api.vaccinationmanagement.dto.employee.*;
 
-public interface EmployeeService extends BaseService<EmployeeModel, EmployeeModel> {
+import java.util.Optional;
+
+public interface EmployeeService {
     OutputLoginDto login(InputLoginDto inputLoginDto);
 
     OutputEmployeeDto signUp(InputSignUpDto inputSignUpDto);
 
     OutputLoginDto refreshToken(String refreshToken);
+
+    Optional<OutputEmployeeDto> findById(Integer id);
+
+    Optional<OutputEmployeeDto> findByEmail(String email);
+
+    OutputEmployeeDto saveUpdate(InputEmployeeUpdateDto dto, String email);
+
+    OutputEmployeeDto saveUpdatePassword(InputChangePasswordDto dto, String email);
+
+    void deleteByEmail(String email);
 }

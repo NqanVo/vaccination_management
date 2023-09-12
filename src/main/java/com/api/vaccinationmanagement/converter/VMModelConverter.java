@@ -1,6 +1,6 @@
 package com.api.vaccinationmanagement.converter;
 
-import com.api.vaccinationmanagement.dto.HistoryVaccinationDto;
+import com.api.vaccinationmanagement.dto.patient.HistoryVaccinationDto;
 import com.api.vaccinationmanagement.model.VMModel;
 
 public class VMModelConverter {

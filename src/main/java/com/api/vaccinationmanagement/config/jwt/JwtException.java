@@ -25,7 +25,7 @@ public class JwtException implements AuthenticationEntryPoint {
         ResponseModel<String> errorDTO = new ResponseModel<>();
         errorDTO.setStatus(401);
         errorDTO.setTimestamp(Timestamp.valueOf(LocalDateTime.now()));
-        errorDTO.setMessage("Không có quyền truy cập");
+        errorDTO.setMessage("UNAUTHORIZED");
         errorDTO.setData(authException.getMessage());
 
         ResponseEntity<ResponseModel<String>> responseEntity = new ResponseEntity<>(errorDTO, HttpStatus.UNAUTHORIZED);

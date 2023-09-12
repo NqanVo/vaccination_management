@@ -2,10 +2,7 @@ package com.api.vaccinationmanagement.service.imp;
 
 import com.api.vaccinationmanagement.config.jwt.JwtService;
 import com.api.vaccinationmanagement.converter.EmployeeConverter;
-import com.api.vaccinationmanagement.dto.InputLoginDto;
-import com.api.vaccinationmanagement.dto.InputSignUpDto;
-import com.api.vaccinationmanagement.dto.OutputEmployeeDto;
-import com.api.vaccinationmanagement.dto.OutputLoginDto;
+import com.api.vaccinationmanagement.dto.employee.*;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.exception.ObjectAlreadyExistsException;
 import com.api.vaccinationmanagement.exception.UnAuthorizationException;
@@ -42,7 +39,7 @@ public class EmployeeServiceImp implements EmployeeService {
                     .refreshToken(jwtService.generateToken(employeeModel, JwtService.TOKEN_TYPE.REFRESH_TOKEN))
                     .build();
         else
-            throw new NotFoundException("Wrong password");
+            throw new RuntimeException("Wrong password");
     }
 
     @Override
@@ -53,8 +50,8 @@ public class EmployeeServiceImp implements EmployeeService {
         RoleModel roleEmployee = roleService.findByCode("ROLE_EMPLOYEE").get();
         EmployeeModel model = EmployeeConverter.InputToModelCreate(inputSignUpDto);
         model.setRoleModel(roleEmployee);
-        model.setPassword(passwordEncoder.encode(inputSignUpDto.getPassword()));
         model.setEnabled(true);
+        model.setPassword(passwordEncoder.encode(inputSignUpDto.getPassword()));
         return EmployeeConverter.ModelToOutput(employeeRepo.save(model));
     }
 
@@ -86,22 +83,67 @@ public class EmployeeServiceImp implements EmployeeService {
     }
 
     @Override
-    public Optional<EmployeeModel> findById(Integer id) {
-        return Optional.empty();
+    public Optional<OutputEmployeeDto> findById(Integer id) {
+        Optional<EmployeeModel> employeeModel = employeeRepo.findById(id);
+        if (employeeModel.isPresent())
+            return Optional.of(EmployeeConverter.ModelToOutput(employeeModel.get()));
+        else
+            throw new NotFoundException("Not found employee with id: " + id);
     }
 
     @Override
-    public EmployeeModel saveNew(EmployeeModel model) {
-        return null;
+    public Optional<OutputEmployeeDto> findByEmail(String email) {
+        Optional<EmployeeModel> employeeModel = employeeRepo.findEmployeeModelByEmail(email);
+        if (employeeModel.isPresent())
+            return Optional.of(EmployeeConverter.ModelToOutput(employeeModel.get()));
+        else
+            throw new NotFoundException("Not found employee with email: " + email);
     }
 
     @Override
-    public EmployeeModel saveUpdate(EmployeeModel model) {
-        return null;
+    public OutputEmployeeDto saveUpdate(InputEmployeeUpdateDto dto, String email) {
+        Optional<EmployeeModel> employeeModel = employeeRepo.findEmployeeModelByEmail(email);
+        if (employeeModel.isPresent()) {
+            // Neu cap nhat role ma khong phai la Admin hoac cap nhat role region ma khong phai la Admin/Manager -> UnAuthorizationException
+            boolean changeRole = !dto.getRoleId().equals(employeeModel.get().getRoleModel().getId()) && !roleService.isAdmin();
+            boolean changeRoleRegion = !dto.getRoleRegion().equals(employeeModel.get().getRoleRegion()) && !(roleService.isAdmin() || roleService.isManager());
+            if (changeRole || changeRoleRegion)
+                throw new UnAuthorizationException("UnAuthorization edit role");
+            else {
+                RoleModel roleModel = null;
+                if (!employeeModel.get().getRoleModel().getId().equals(dto.getRoleId())) {
+                    roleModel = roleService.findById(dto.getRoleId()).orElseThrow(() -> new NotFoundException("Not found role with id: " + dto.getRoleId()));
+                    employeeModel.get().setRoleModel(roleModel);
+
+                }
+                EmployeeConverter.InputToModelUpdate(dto, employeeModel.get());
+                if (roleModel != null && (roleModel.getCode().equals("ROLE_ADMIN") || roleModel.getCode().equals("ROLE_MANAGER")))
+                    employeeModel.get().setRoleRegion("0000");
+                return EmployeeConverter.ModelToOutput(employeeRepo.save(employeeModel.get()));
+            }
+        } else
+            throw new NotFoundException("Not found employee with email: " + email);
     }
 
     @Override
-    public void deleteById(Integer id) {
+    public OutputEmployeeDto saveUpdatePassword(InputChangePasswordDto dto, String email) {
+        Optional<EmployeeModel> employeeModel = employeeRepo.findEmployeeModelByEmail(email);
+        if (employeeModel.isPresent()) {
+            if (passwordEncoder.matches(dto.getOldPassword(), employeeModel.get().getPassword())) {
+                employeeModel.get().setPassword(passwordEncoder.encode(dto.getNewPassword()));
+                return EmployeeConverter.ModelToOutput(employeeRepo.save(employeeModel.get()));
+            } else
+                throw new RuntimeException("Old password not matches");
+        } else
+            throw new NotFoundException("Not found employee with email: " + email);
+    }
 
+    @Override
+    public void deleteByEmail(String email) {
+        Optional<EmployeeModel> employeeModel = employeeRepo.findEmployeeModelByEmail(email);
+        if (employeeModel.isPresent()) {
+            employeeRepo.deleteById(employeeModel.get().getId());
+        } else
+            throw new NotFoundException("Not found employee with email: " + email);
     }
 }

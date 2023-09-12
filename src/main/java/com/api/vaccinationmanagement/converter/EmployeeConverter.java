@@ -1,7 +1,8 @@
 package com.api.vaccinationmanagement.converter;
 
-import com.api.vaccinationmanagement.dto.InputSignUpDto;
-import com.api.vaccinationmanagement.dto.OutputEmployeeDto;
+import com.api.vaccinationmanagement.dto.employee.InputEmployeeUpdateDto;
+import com.api.vaccinationmanagement.dto.employee.InputSignUpDto;
+import com.api.vaccinationmanagement.dto.employee.OutputEmployeeDto;
 import com.api.vaccinationmanagement.model.EmployeeModel;
 import org.springframework.beans.BeanUtils;
 
@@ -12,8 +13,8 @@ public class EmployeeConverter {
         return employeeModel;
     }
 
-    public static EmployeeModel InputToModelUpdate(InputSignUpDto inputSignUpDto, EmployeeModel employeeModel) {
-        BeanUtils.copyProperties(inputSignUpDto, employeeModel);
+    public static EmployeeModel InputToModelUpdate(InputEmployeeUpdateDto dto, EmployeeModel employeeModel) {
+        BeanUtils.copyProperties(dto, employeeModel);
         return employeeModel;
     }
 

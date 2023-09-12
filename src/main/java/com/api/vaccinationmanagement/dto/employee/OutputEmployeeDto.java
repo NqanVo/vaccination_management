@@ -1,4 +1,4 @@
-package com.api.vaccinationmanagement.dto;
+package com.api.vaccinationmanagement.dto.employee;
 
 import com.api.vaccinationmanagement.model.RoleModel;
 import lombok.AllArgsConstructor;

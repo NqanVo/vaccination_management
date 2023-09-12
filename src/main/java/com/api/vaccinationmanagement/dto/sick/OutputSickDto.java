@@ -1,6 +1,7 @@
-package com.api.vaccinationmanagement.dto;
+package com.api.vaccinationmanagement.dto.sick;
 
 
+import com.api.vaccinationmanagement.dto.vaccine.OutputVaccineDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,7 +1,7 @@
 package com.api.vaccinationmanagement.service.imp;
 
 import com.api.vaccinationmanagement.converter.VMModelConverter;
-import com.api.vaccinationmanagement.dto.HistoryVaccinationDto;
+import com.api.vaccinationmanagement.dto.patient.HistoryVaccinationDto;
 import com.api.vaccinationmanagement.dto.InputVMDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.*;
@@ -104,7 +104,8 @@ public class VMServiceImp implements VMService {
                 .orElseThrow(() -> new NotFoundException("Not found sick with id: " + dto.getSickId()));
         VaccineModel vaccineModel = vaccineRepo.findById(dto.getVaccineId())
                 .orElseThrow(() -> new NotFoundException("Not found vaccine with id: " + dto.getVaccineId()));
-
+        boolean vaccineMatchesSick = sickModel.getVaccineModelList().contains(vaccineModel);
+        if(!vaccineMatchesSick) throw new RuntimeException("Vaccine not matches sick");
         VMModel vmModel = VMModel.builder()
                 .patientModel(patientModel)
                 .sickModel(sickModel)
@@ -135,6 +136,8 @@ public class VMServiceImp implements VMService {
                     .orElseThrow(() -> new NotFoundException("Not found vaccine with id: " + dto.getVaccineId()));
             vmModelOld.setVaccineModel(vaccineModel);
         }
+        boolean vaccineMatchesSick = vmModelOld.getSickModel().getVaccineModelList().contains(vmModelOld.getVaccineModel());
+        if(!vaccineMatchesSick) throw new RuntimeException("Vaccine not matches sick");
         vmModelOld.setVaccinationDate(dto.getVaccinationDate());
         return vmRepo.save(vmModelOld);
     }
