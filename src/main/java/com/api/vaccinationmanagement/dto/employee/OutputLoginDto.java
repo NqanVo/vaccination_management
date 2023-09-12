@@ -1,4 +1,4 @@
-package com.api.vaccinationmanagement.dto;
+package com.api.vaccinationmanagement.dto.employee;
 
 import lombok.Builder;
 import lombok.Data;

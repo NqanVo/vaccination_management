@@ -1,6 +1,6 @@
 package com.api.vaccinationmanagement.converter;
 
-import com.api.vaccinationmanagement.dto.InputPatientDto;
+import com.api.vaccinationmanagement.dto.patient.InputPatientDto;
 import com.api.vaccinationmanagement.model.PatientModel;
 import org.springframework.beans.BeanUtils;
 

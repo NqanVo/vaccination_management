@@ -1,8 +1,8 @@
 package com.api.vaccinationmanagement.converter;
 
-import com.api.vaccinationmanagement.dto.InputSickDto;
-import com.api.vaccinationmanagement.dto.OutputSickDto;
-import com.api.vaccinationmanagement.dto.OutputVaccineDto;
+import com.api.vaccinationmanagement.dto.sick.InputSickDto;
+import com.api.vaccinationmanagement.dto.sick.OutputSickDto;
+import com.api.vaccinationmanagement.dto.vaccine.OutputVaccineDto;
 import com.api.vaccinationmanagement.model.SickModel;
 import org.springframework.beans.BeanUtils;
 

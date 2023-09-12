@@ -1,8 +1,7 @@
 package com.api.vaccinationmanagement.service.imp;
 
-import com.api.vaccinationmanagement.config.jwt.JwtService;
 import com.api.vaccinationmanagement.converter.PatientConverter;
-import com.api.vaccinationmanagement.dto.InputPatientDto;
+import com.api.vaccinationmanagement.dto.patient.InputPatientDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.exception.UnAuthorizationException;
 import com.api.vaccinationmanagement.model.PatientModel;
@@ -23,10 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service

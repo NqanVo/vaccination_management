@@ -1,10 +1,9 @@
 package com.api.vaccinationmanagement.service.imp;
 
 import com.api.vaccinationmanagement.converter.SickConverter;
-import com.api.vaccinationmanagement.dto.InputSickDto;
-import com.api.vaccinationmanagement.dto.OutputSickDto;
+import com.api.vaccinationmanagement.dto.sick.InputSickDto;
+import com.api.vaccinationmanagement.dto.sick.OutputSickDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
-import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.model.SickModel;
 import com.api.vaccinationmanagement.repository.SickRepo;
 import com.api.vaccinationmanagement.service.SickService;
@@ -20,7 +19,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

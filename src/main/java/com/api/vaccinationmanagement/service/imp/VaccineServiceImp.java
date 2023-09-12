@@ -1,7 +1,7 @@
 package com.api.vaccinationmanagement.service.imp;
 
 import com.api.vaccinationmanagement.converter.VaccineConverter;
-import com.api.vaccinationmanagement.dto.InputVaccineDto;
+import com.api.vaccinationmanagement.dto.vaccine.InputVaccineDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.SickModel;
 import com.api.vaccinationmanagement.model.VaccineModel;

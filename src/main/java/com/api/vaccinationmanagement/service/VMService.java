@@ -1,6 +1,6 @@
 package com.api.vaccinationmanagement.service;
 
-import com.api.vaccinationmanagement.dto.HistoryVaccinationDto;
+import com.api.vaccinationmanagement.dto.patient.HistoryVaccinationDto;
 import com.api.vaccinationmanagement.dto.InputVMDto;
 import com.api.vaccinationmanagement.model.VMModel;
 import org.springframework.data.domain.Page;
