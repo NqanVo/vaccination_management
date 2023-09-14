@@ -30,4 +30,7 @@ public class PatientModel extends BaseModel{
     @JsonIgnore
     @OneToMany(mappedBy = "patientModel",cascade = CascadeType.ALL)
     private List<VMModel> vmModelList = new ArrayList<>();
+    @JsonIgnore
+    @OneToMany(mappedBy = "patientModel", cascade = CascadeType.ALL)
+    private List<HistorySentEmailModel> historySentEmailModels = new ArrayList<>();
 }

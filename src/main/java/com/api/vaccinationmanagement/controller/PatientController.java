@@ -3,11 +3,12 @@ package com.api.vaccinationmanagement.controller;
 import com.api.vaccinationmanagement.dto.patient.InputExcelPatientDto;
 import com.api.vaccinationmanagement.dto.patient.InputPatientDto;
 import com.api.vaccinationmanagement.dto.patient.HistoryVaccinationDto;
+import com.api.vaccinationmanagement.dto.patient.InputSentEmailPatientDto;
 import com.api.vaccinationmanagement.model.PatientModel;
 import com.api.vaccinationmanagement.response.ResponseModel;
+import com.api.vaccinationmanagement.service.ExcelService;
 import com.api.vaccinationmanagement.service.PatientService;
 import com.api.vaccinationmanagement.service.VMService;
-import com.api.vaccinationmanagement.service.imp.ExcelService;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -47,6 +48,8 @@ public class PatientController {
             @RequestParam(required = false) String addressCode,
             @RequestParam(required = false) @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC") Timestamp birthdateFrom,
             @RequestParam(required = false) @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC") Timestamp birthdateTo,
+            @RequestParam(required = false) Integer ageFrom,
+            @RequestParam(required = false) Integer ageTo,
             @RequestParam(required = false) Integer sizePage,
             @RequestParam(required = false) Integer currentPage) throws RuntimeException {
 
@@ -59,7 +62,7 @@ public class PatientController {
                 Timestamp.valueOf(LocalDateTime.now()),
                 200,
                 "",
-                patientService.findByFilters(fullname, email, phone, birthdateFrom, birthdateTo, addressCode, pageable));
+                patientService.findByFilters(fullname, email, phone, birthdateFrom, birthdateTo, ageFrom, ageTo, addressCode, pageable));
         return ResponseEntity.ok(responseModel);
     }
 
@@ -133,4 +136,16 @@ public class PatientController {
                 null);
         return ResponseEntity.ok(responseModel);
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
+    @PostMapping("/sent-email")
+    public ResponseEntity<?> sentEmail(@RequestBody InputSentEmailPatientDto inputSentEmailPatientDto) {
+        ResponseModel<String> responseModel = new ResponseModel<>(
+                Timestamp.valueOf(LocalDateTime.now()),
+                200,
+                patientService.sendEmailToPatients(inputSentEmailPatientDto.getTitle(), inputSentEmailPatientDto.getMessage(), inputSentEmailPatientDto.getListPatientId()),
+                null);
+        return ResponseEntity.ok(responseModel);
+    }
+
 }
