@@ -27,10 +27,12 @@ public class JwtService {
 
     private String role;
     private String roleRegion;
+    private String email;
 
     public void setRoleAndRoleRegion(String token) {
         this.role = getRoleFromJwt(token);
         this.roleRegion = getRoleRegionFromJwt(token);
+        this.email = getEmailFromJwt(token);
     }
 
     public String getRole() {
@@ -39,6 +41,10 @@ public class JwtService {
 
     public String getRoleRegion() {
         return roleRegion;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     public String generateToken(EmployeeModel employeeModel, TOKEN_TYPE tokenType) {
@@ -86,7 +92,9 @@ public class JwtService {
         return parseClaims(token).getExpiration();
     }
 
-    public String getTokenType(String token){return (String) parseClaims(token).get("tokenType");}
+    public String getTokenType(String token) {
+        return (String) parseClaims(token).get("tokenType");
+    }
 
     public String getRoleFromJwt(String token) {
         return (String) parseClaims(token).get("role");

@@ -1,12 +1,12 @@
 package com.api.vaccinationmanagement.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
@@ -32,7 +32,9 @@ public class EmployeeModel extends BaseModel implements UserDetails {
     @ManyToOne
     @JoinColumn(name = "role_id")
     private RoleModel roleModel;
-
+    @JsonIgnore
+    @OneToMany(mappedBy = "employeeModel",cascade = CascadeType.ALL)
+    private List<HistorySentEmailModel> historySentEmailModels = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

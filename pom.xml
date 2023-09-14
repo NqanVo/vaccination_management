@@ -81,7 +81,11 @@
 			<artifactId>jackson-datatype-jsr310</artifactId>
 			<version>2.15.2</version>
 		</dependency>
-
+		<!--         ** Send mail -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 <!--		** Excel **-->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
