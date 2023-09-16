@@ -94,6 +94,8 @@ public class PatientServiceImp implements PatientService {
     public String sendEmailToPatients(String title, String message, List<Integer> listIdPatient) {
         Set<Integer> sent = new HashSet<>();
         int sentTotal = listIdPatient.size();
+        if(sentTotal == 0) throw new RuntimeException("At least 1 patient");
+        if(sentTotal > 50) throw new RuntimeException("Maximum 50 patients per submission");
         int sentSuccess = 0;
         EmployeeModel employeeModel = employeeRepo.findEmployeeModelByEmail(jwtService.getEmail()).get();
         for (Integer id : listIdPatient) {

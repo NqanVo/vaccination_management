@@ -1,10 +1,12 @@
 package com.api.vaccinationmanagement.controller;
 
+import com.api.vaccinationmanagement.dto.HistoryEmailDto;
 import com.api.vaccinationmanagement.dto.employee.InputChangePasswordDto;
 import com.api.vaccinationmanagement.dto.employee.InputEmployeeUpdateDto;
 import com.api.vaccinationmanagement.dto.employee.OutputEmployeeDto;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.exception.UnAuthorizationException;
+import com.api.vaccinationmanagement.model.HistorySentEmailModel;
 import com.api.vaccinationmanagement.response.ResponseModel;
 import com.api.vaccinationmanagement.service.EmployeeService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -44,6 +47,17 @@ public class EmployeeController {
                 200,
                 null,
                 employeeService.findByEmail(email));
+        return ResponseEntity.ok(responseModel);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE') and #email == authentication.name or hasAnyRole('ADMIN','MANAGER')")
+    @GetMapping("/{email}/history-sent-email")
+    public ResponseEntity<?> findHistoryEmail(@PathVariable String email) throws RuntimeException{
+        ResponseModel<List<HistoryEmailDto>> responseModel = new ResponseModel<>(
+                Timestamp.valueOf(LocalDateTime.now()),
+                200,
+                null,
+                employeeService.findHistoryEmail(email));
         return ResponseEntity.ok(responseModel);
     }
 

@@ -1,12 +1,15 @@
 package com.api.vaccinationmanagement.service.imp;
 
 import com.api.vaccinationmanagement.config.jwt.JwtService;
+import com.api.vaccinationmanagement.converter.EmailConverter;
 import com.api.vaccinationmanagement.converter.EmployeeConverter;
+import com.api.vaccinationmanagement.dto.HistoryEmailDto;
 import com.api.vaccinationmanagement.dto.employee.*;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.exception.ObjectAlreadyExistsException;
 import com.api.vaccinationmanagement.exception.UnAuthorizationException;
 import com.api.vaccinationmanagement.model.EmployeeModel;
+import com.api.vaccinationmanagement.model.HistorySentEmailModel;
 import com.api.vaccinationmanagement.model.RoleModel;
 import com.api.vaccinationmanagement.repository.EmployeeRepo;
 import com.api.vaccinationmanagement.service.EmployeeService;
@@ -15,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -80,6 +85,17 @@ public class EmployeeServiceImp implements EmployeeService {
         } else {
             throw new UnAuthorizationException("Invalid token type");
         }
+    }
+
+    @Override
+    public List<HistoryEmailDto> findHistoryEmail(String email) {
+        EmployeeModel employeeModel = employeeRepo.findEmployeeModelByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Not found employee with email: " + email));
+        List<HistoryEmailDto> list = new ArrayList<>();
+        employeeModel.getHistorySentEmailModels().forEach(data -> {
+            list.add(EmailConverter.ModelToHistory(data));
+        });
+        return list;
     }
 
     @Override

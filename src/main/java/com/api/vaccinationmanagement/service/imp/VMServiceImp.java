@@ -3,6 +3,10 @@ package com.api.vaccinationmanagement.service.imp;
 import com.api.vaccinationmanagement.converter.VMModelConverter;
 import com.api.vaccinationmanagement.dto.patient.HistoryVaccinationDto;
 import com.api.vaccinationmanagement.dto.InputVMDto;
+import com.api.vaccinationmanagement.dto.statistical.RateVaccinatedBySIckIdAndRegionDto;
+import com.api.vaccinationmanagement.dto.statistical.RateVaccinatedEachSickDto;
+import com.api.vaccinationmanagement.dto.statistical.StatisticalRateVaccinatedBySickIdAndRegionDto;
+import com.api.vaccinationmanagement.dto.statistical.StatisticalRateVaccinatedEachSick;
 import com.api.vaccinationmanagement.exception.NotFoundException;
 import com.api.vaccinationmanagement.model.*;
 import com.api.vaccinationmanagement.repository.PatientRepo;
@@ -23,11 +27,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class VMServiceImp implements VMService {
@@ -43,6 +45,74 @@ public class VMServiceImp implements VMService {
     private EntityManager entityManager;
     @Autowired
     private RoleService roleService;
+
+    @Override
+    public Page<PatientModel> findPatientVaccinatedWithSickIdAndMinDosesAndAddressCode(
+            Integer sickId, Integer minDoses, String addressCode, Pageable pageable) {
+        String actualAddressCode = roleService.getRoleRegionForGet(addressCode);
+        return vmRepo.findPatientVaccinatedWithSickIdAndMinDosesAndAddressCode(sickId, minDoses, actualAddressCode, pageable);
+    }
+
+    @Override
+    public StatisticalRateVaccinatedEachSick findRatePatientVaccinatedEachSick() {
+        List<Object[]> dataRaw = vmRepo.findRatePatientVaccinatedEachSick();
+
+        StatisticalRateVaccinatedEachSick statisticalRateVaccinatedEachSick = new StatisticalRateVaccinatedEachSick();
+        dataRaw.forEach(data -> {
+            BigDecimal bigDecimal = (BigDecimal) data[0];
+            Double doubleValue = bigDecimal.doubleValue(); // Chuyển đổi thành Double
+            RateVaccinatedEachSickDto rateVaccinatedEachSickDto = RateVaccinatedEachSickDto.builder()
+                    .rate(doubleValue)
+                    .nameSick((String) data[1])
+                    .build();
+            statisticalRateVaccinatedEachSick.getRateVaccinatedEachSickDtoList().add(rateVaccinatedEachSickDto);
+        });
+
+        statisticalRateVaccinatedEachSick.setTotalPatient(patientRepo.findAll().size());
+
+        return statisticalRateVaccinatedEachSick;
+    }
+
+    @Override
+    public StatisticalRateVaccinatedBySickIdAndRegionDto findRatePatientVaccinatedBySickIdAndRegion(
+            Integer sickId, String addressCode) {
+        List<Object[]> dataRaw;
+        if (addressCode.equals("0000"))
+            dataRaw = vmRepo.findRatePatientVaccinatedBySickIdAndAllCity(sickId);
+        else if (addressCode.length() == 4)
+            dataRaw = vmRepo.findRatePatientVaccinatedBySickIdAndCity(sickId, addressCode);
+        else if(addressCode.length() == 9)
+            dataRaw = vmRepo.findRatePatientVaccinatedBySickIdAndDistrict(sickId, addressCode);
+        else
+            dataRaw = vmRepo.findRatePatientVaccinatedBySickIdAndCommune(sickId, addressCode);
+
+        if (dataRaw.size() == 0) throw new NotFoundException("Not found data with this region");
+
+        List<RateVaccinatedBySIckIdAndRegionDto> rateRegion = new ArrayList<>();
+        dataRaw.forEach(data -> {
+            Long injected = (Long) data[3];
+            Long total = (Long) data[4];
+            int injectedValue = injected.intValue();
+            int totalValue = total.intValue();
+
+            RateVaccinatedBySIckIdAndRegionDto rate = RateVaccinatedBySIckIdAndRegionDto
+                    .builder()
+                    .addressCode((String) data[2])
+                    .injected(injectedValue)
+                    .total(totalValue)
+                    .rate((double) injectedValue / totalValue)
+                    .build();
+
+            rateRegion.add(rate);
+        });
+
+        return StatisticalRateVaccinatedBySickIdAndRegionDto
+                .builder()
+                .sickId((Integer) dataRaw.get(0)[0])
+                .sickName((String) dataRaw.get(0)[1])
+                .region(rateRegion)
+                .build();
+    }
 
     @Override
     public Page<VMModel> findByFilters(Integer patientId, Integer sickId,
@@ -105,7 +175,7 @@ public class VMServiceImp implements VMService {
         VaccineModel vaccineModel = vaccineRepo.findById(dto.getVaccineId())
                 .orElseThrow(() -> new NotFoundException("Not found vaccine with id: " + dto.getVaccineId()));
         boolean vaccineMatchesSick = sickModel.getVaccineModelList().contains(vaccineModel);
-        if(!vaccineMatchesSick) throw new RuntimeException("Vaccine not matches sick");
+        if (!vaccineMatchesSick) throw new RuntimeException("Vaccine not matches sick");
         VMModel vmModel = VMModel.builder()
                 .patientModel(patientModel)
                 .sickModel(sickModel)
@@ -137,7 +207,7 @@ public class VMServiceImp implements VMService {
             vmModelOld.setVaccineModel(vaccineModel);
         }
         boolean vaccineMatchesSick = vmModelOld.getSickModel().getVaccineModelList().contains(vmModelOld.getVaccineModel());
-        if(!vaccineMatchesSick) throw new RuntimeException("Vaccine not matches sick");
+        if (!vaccineMatchesSick) throw new RuntimeException("Vaccine not matches sick");
         vmModelOld.setVaccinationDate(dto.getVaccinationDate());
         return vmRepo.save(vmModelOld);
     }
