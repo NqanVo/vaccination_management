@@ -139,7 +139,7 @@ public class PatientController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     @PostMapping("/sent-email")
-    public ResponseEntity<?> sentEmail(@RequestBody InputSentEmailPatientDto inputSentEmailPatientDto) {
+    public ResponseEntity<?> sentEmail(@RequestBody @Valid InputSentEmailPatientDto inputSentEmailPatientDto) {
         ResponseModel<String> responseModel = new ResponseModel<>(
                 Timestamp.valueOf(LocalDateTime.now()),
                 200,
