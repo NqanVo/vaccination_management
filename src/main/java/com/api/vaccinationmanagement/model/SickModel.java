@@ -17,7 +17,8 @@ import java.util.List;
 public class SickModel extends BaseModel{
     @Column(length = 50)
     private String name;
-    @Column(columnDefinition = "LONGTEXT")
+//    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT") //PostgreSQL / MSSql
     private String description;
     @JsonIgnore
     @OneToMany(mappedBy = "sickModel",cascade = CascadeType.ALL)

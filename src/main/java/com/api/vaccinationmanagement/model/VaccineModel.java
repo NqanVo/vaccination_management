@@ -17,7 +17,8 @@ import java.util.List;
 public class VaccineModel extends BaseModel {
     @Column(length = 50)
     private String name;
-    @Column(columnDefinition = "LONGTEXT")
+//    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT") //PostgreSQL
     private String description;
     @Column(length = 20)
     private String madeIn;

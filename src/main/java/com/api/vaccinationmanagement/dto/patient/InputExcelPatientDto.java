@@ -1,5 +1,6 @@
 package com.api.vaccinationmanagement.dto.patient;
 
+import com.api.vaccinationmanagement.model.PatientModel;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -15,4 +16,5 @@ import java.sql.Timestamp;
 public class InputExcelPatientDto {
     @NotNull
     private MultipartFile file;
+//    private PatientModel patient;
 }
