@@ -9,6 +9,7 @@ import com.api.vaccinationmanagement.exception.UnAuthorizationException;
 import com.api.vaccinationmanagement.response.ResponseModel;
 import com.api.vaccinationmanagement.service.EmployeeService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class AuthenticationController {
     private EmployeeService employeeService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody InputLoginDto inputLoginDto) throws RuntimeException{
+    public ResponseEntity<?> login(@RequestBody @Valid InputLoginDto inputLoginDto) throws RuntimeException{
         ResponseModel<OutputLoginDto> responseModel = new ResponseModel<>(
                 Timestamp.valueOf(LocalDateTime.now()),
                 200,
@@ -37,7 +38,7 @@ public class AuthenticationController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signUp(@RequestBody InputSignUpDto inputSignUpDto) throws RuntimeException {
+    public ResponseEntity<?> signUp(@RequestBody @Valid InputSignUpDto inputSignUpDto) throws RuntimeException {
         ResponseModel<OutputEmployeeDto> responseModel = new ResponseModel<>(
                 Timestamp.valueOf(LocalDateTime.now()),
                 200,

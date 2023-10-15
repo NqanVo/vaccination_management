@@ -9,6 +9,7 @@ import com.api.vaccinationmanagement.response.ResponseModel;
 import com.api.vaccinationmanagement.service.VMService;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -115,7 +116,7 @@ public class VMController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     @PostMapping
-    public ResponseEntity<?> createVM(@RequestBody InputVMDto vmModel) throws RuntimeException {
+    public ResponseEntity<?> createVM(@RequestBody @Valid InputVMDto vmModel) throws RuntimeException {
         ResponseModel<VMModel> responseModel = new ResponseModel<>(
                 Timestamp.valueOf(LocalDateTime.now()),
                 200,
@@ -126,7 +127,7 @@ public class VMController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','EMPLOYEE')")
     @PutMapping
-    public ResponseEntity<?> updateVM(@RequestBody InputVMDto vmModel) throws RuntimeException {
+    public ResponseEntity<?> updateVM(@RequestBody @Valid InputVMDto vmModel) throws RuntimeException {
         ResponseModel<VMModel> responseModel = new ResponseModel<>(
                 Timestamp.valueOf(LocalDateTime.now()),
                 200,

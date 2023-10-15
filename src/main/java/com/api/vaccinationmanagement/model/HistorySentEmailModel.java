@@ -17,7 +17,8 @@ import java.sql.Timestamp;
 public class HistorySentEmailModel extends BaseModel{
     @Column(length = 200)
     private String title;
-    @Column(columnDefinition = "LONGTEXT")
+//    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT") //PostgreSQL
     private String content;
     private Timestamp sentAt;
     @ManyToOne

@@ -61,6 +61,7 @@ public class VMServiceImp implements VMService {
         dataRaw.forEach(data -> {
             BigDecimal bigDecimal = (BigDecimal) data[0];
             Double doubleValue = bigDecimal.doubleValue(); // Chuyển đổi thành Double
+
             RateVaccinatedEachSickDto rateVaccinatedEachSickDto = RateVaccinatedEachSickDto.builder()
                     .rate(doubleValue)
                     .nameSick((String) data[1])

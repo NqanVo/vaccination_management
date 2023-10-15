@@ -54,7 +54,7 @@ public class SecurityConfig {
                     .requestMatchers("/authentication/**").permitAll()
                     .anyRequest().authenticated();
         });
-        http.addFilterBefore(corsFilter, ChannelProcessingFilter.class);
+        http.addFilterBefore(new CorsFilter(), ChannelProcessingFilter.class);
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

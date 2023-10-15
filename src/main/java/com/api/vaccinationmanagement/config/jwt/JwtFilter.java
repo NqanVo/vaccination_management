@@ -1,5 +1,6 @@
 package com.api.vaccinationmanagement.config.jwt;
 
+import com.api.vaccinationmanagement.model.EmployeeModel;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,12 +44,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private void setAuthenticationContext(String token, HttpServletRequest request) {
         String email = jwtService.getEmailFromJwt(token);
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+        EmployeeModel employeeModel = customUserDetailsService.loadUserByUsername(email);
         UsernamePasswordAuthenticationToken
                 authentication = new UsernamePasswordAuthenticationToken(
-                userDetails,
+                employeeModel,
                 null,
-                userDetails.getAuthorities());
+                employeeModel.getAuthorities());
         authentication.setDetails(
                 new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
