@@ -8,6 +8,7 @@ import com.api.vaccinationmanagement.model.SickModel;
 import com.api.vaccinationmanagement.response.ResponseModel;
 import com.api.vaccinationmanagement.service.SickService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -60,7 +61,7 @@ public class SickController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping
-    public ResponseEntity<?> createSick(@RequestBody InputSickDto sickModel) throws RuntimeException {
+    public ResponseEntity<?> createSick(@RequestBody @Valid InputSickDto sickModel) throws RuntimeException {
         ResponseModel<OutputSickDto> responseModel = new ResponseModel<>(
                 Timestamp.valueOf(LocalDateTime.now()),
                 200,
@@ -71,7 +72,7 @@ public class SickController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PutMapping
-    public ResponseEntity<?> updateSick(@RequestBody InputSickDto sickModel) throws RuntimeException {
+    public ResponseEntity<?> updateSick(@RequestBody @Valid InputSickDto sickModel) throws RuntimeException {
         ResponseModel<OutputSickDto> responseModel = new ResponseModel<>(
                 Timestamp.valueOf(LocalDateTime.now()),
                 200,
